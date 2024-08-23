@@ -30,7 +30,7 @@ var (
 type sampleList struct {
 	head    *Sample
 	tail    *Sample
-	samples []Sample
+	samples []*Sample
 	free    []int32
 }
 
@@ -113,17 +113,20 @@ func (l *sampleList) Acquire() *Sample {
 	if len(l.free) > 0 {
 		idx = int(l.free[len(l.free)-1])
 		l.free = l.free[:len(l.free)-1]
-		return &l.samples[idx]
+		return l.samples[idx]
 	}
 
 	if len(l.samples) < cap(l.samples) {
 		l.samples = l.samples[:len(l.samples)+1]
+		if l.samples[len(l.samples)-1] == nil {
+			l.samples[len(l.samples)-1] = &Sample{}
+		}
 	} else {
-		l.samples = append(l.samples, Sample{})
+		l.samples = append(l.samples, &Sample{})
 	}
 
 	idx = len(l.samples) - 1
-	s := &l.samples[idx]
+	s := l.samples[idx]
 	s.idx = int32(idx)
 	return s
 }
