@@ -16,7 +16,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.4
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/hydrogen18/stalecucumber v0.0.0-20151102144322-9b38526d4bdf
@@ -50,8 +50,8 @@ require (
 	github.com/prometheus/prometheus v0.0.0-20211110084043-4ef8c7c1d8e4
 	github.com/rakyll/statik v0.1.6
 	github.com/sergi/go-diff v1.1.0
-	github.com/spf13/cobra v1.3.0
-	github.com/stretchr/testify v1.7.0
+	github.com/spf13/cobra v1.7.0
+	github.com/stretchr/testify v1.8.4
 	github.com/twotwotwo/sorts v0.0.0-20160814051341-bf5c1f2b8553
 	github.com/uber-go/tally v3.5.8+incompatible
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
@@ -82,7 +82,7 @@ require (
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.1.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.1.0
+	golang.org/x/sys v0.11.0
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/go-playground/validator.v9 v9.29.1
@@ -92,6 +92,7 @@ require (
 )
 
 require (
+	github.com/google/gops v0.3.28
 	github.com/twmb/murmur3 v1.1.6
 	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090
 )
@@ -131,7 +132,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/hashicorp/hcl v1.0.1-0.20190611123218-cf7d376da96d // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/knadh/koanf v1.4.0 // indirect
