@@ -23,6 +23,7 @@ package io
 import (
 	"bufio"
 	"io"
+	"sync"
 )
 
 // ResettableReader is a resettable reader.
@@ -36,12 +37,32 @@ type ResettableReaderOptions struct {
 	ReadBufferSize int
 }
 
+var bufioReaderPool = sync.Pool{
+	New: func() interface{} {
+		return bufio.NewReaderSize(nil, 0)
+	},
+}
+
 // ResettableReaderFn creates a resettable reader.
 type ResettableReaderFn func(r io.Reader, opts ResettableReaderOptions) ResettableReader
+
+type ReleaseReaderFn func(r *bufio.Reader)
 
 // defaultResettableReaderFn creates a default resettable reader.
 func defaultResettableReaderFn() ResettableReaderFn {
 	return func(r io.Reader, opts ResettableReaderOptions) ResettableReader {
-		return bufio.NewReaderSize(r, opts.ReadBufferSize)
+		reader := bufioReaderPool.Get().(*bufio.Reader)
+		reader.Reset(r)
+		if reader.Size() < opts.ReadBufferSize {
+			reader = bufio.NewReaderSize(r, opts.ReadBufferSize)
+		}
+		return reader
+	}
+}
+
+func defaultReleaseReaderFn() ReleaseReaderFn {
+	return func(reader *bufio.Reader) {
+		reader.Reset(nil)
+		bufioReaderPool.Put(reader)
 	}
 }

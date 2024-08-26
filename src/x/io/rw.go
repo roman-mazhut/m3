@@ -28,6 +28,10 @@ type Options interface {
 	// // ResettableReaderFn sets the reader function.
 	ResettableReaderFn() ResettableReaderFn
 
+	SetReleaseReaderFn(value ReleaseReaderFn) Options
+
+	ReleaseReaderFn() ReleaseReaderFn
+
 	// ResettableWriterFn returns the writer function.
 	SetResettableWriterFn(value ResettableWriterFn) Options
 
@@ -37,6 +41,7 @@ type Options interface {
 
 type options struct {
 	resettableReaderFn ResettableReaderFn
+	releaseReaderFn    ReleaseReaderFn
 	resettableWriterFn ResettableWriterFn
 }
 
@@ -44,6 +49,7 @@ type options struct {
 func NewOptions() Options {
 	return &options{
 		resettableReaderFn: defaultResettableReaderFn(),
+		releaseReaderFn:    defaultReleaseReaderFn(),
 		resettableWriterFn: defaultResettableWriterFn(),
 	}
 }
@@ -56,6 +62,16 @@ func (opts *options) SetResettableReaderFn(value ResettableReaderFn) Options {
 
 func (opts *options) ResettableReaderFn() ResettableReaderFn {
 	return opts.resettableReaderFn
+}
+
+func (opts *options) SetReleaseReaderFn(value ReleaseReaderFn) Options {
+	o := *opts
+	o.releaseReaderFn = value
+	return &o
+}
+
+func (opts *options) ReleaseReaderFn() ReleaseReaderFn {
+	return opts.releaseReaderFn
 }
 
 func (opts *options) SetResettableWriterFn(value ResettableWriterFn) Options {
