@@ -121,8 +121,7 @@ func (s *handler) Handle(conn net.Conn) {
 	nowFn := s.opts.ClockOptions().NowFn()
 	rOpts := xio.ResettableReaderOptions{ReadBufferSize: s.readBufferSize}
 	read := s.opts.RWOptions().ResettableReaderFn()(conn, rOpts)
-	reader := bufio.NewReaderSize(read, s.readBufferSize)
-	it := protobuf.NewUnaggregatedIterator(reader, s.protobufItOpts)
+	it := protobuf.NewUnaggregatedIterator(read.(*bufio.Reader), s.protobufItOpts)
 	defer it.Close()
 
 	// Iterate over the incoming metrics stream and queue up metrics.
