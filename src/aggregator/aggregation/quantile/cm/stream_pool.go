@@ -20,19 +20,28 @@
 
 package cm
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/m3db/m3/src/x/pool"
+)
 
 // StreamPool is a pool of streams, wrapping sync.Pool.
 type StreamPool struct {
-	pool *sync.Pool
+	pool        *sync.Pool
+	samplesPool pool.ObjectPool
 }
 
 // NewStreamPool creates a new StreamPool.
 func NewStreamPool(opts Options) StreamPool {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	return StreamPool{
 		pool: &sync.Pool{
 			New: func() interface{} {
-				return NewStream(opts)
+				return NewStream(opts, samplesPool)
 			},
 		},
 	}

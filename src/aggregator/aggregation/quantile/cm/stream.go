@@ -22,6 +22,8 @@ package cm
 
 import (
 	"math"
+
+	"github.com/m3db/m3/src/x/pool"
 )
 
 const (
@@ -56,10 +58,11 @@ type Stream struct {
 	compressMinRank          int64       // compression min rank
 	closed                   bool        // whether the stream is closed
 	flushed                  bool        // whether the stream is flushed
+	samplesPool              pool.ObjectPool
 }
 
 // NewStream creates a new sample stream.
-func NewStream(opts Options) *Stream {
+func NewStream(opts Options, sp pool.ObjectPool) *Stream {
 	if opts == nil {
 		opts = NewOptions()
 	}
@@ -69,6 +72,7 @@ func NewStream(opts Options) *Stream {
 		eps:                    opts.Eps(),
 		capacity:               opts.Capacity(),
 		insertAndCompressEvery: opts.InsertAndCompressEvery(),
+		samplesPool:            sp,
 	}
 
 	return s
@@ -83,7 +87,7 @@ func (s *Stream) AddBatch(values []float64) {
 	}
 
 	if s.samples.Len() == 0 {
-		sample := s.samples.Acquire()
+		sample := s.samples.Acquire(s.samplesPool)
 		sample.value = values[0]
 		sample.numRanks = 1
 		sample.delta = 0
@@ -197,7 +201,7 @@ func (s *Stream) Close() {
 	s.bufMore.Reset()
 	s.bufLess.Reset()
 
-	s.samples.Reset()
+	s.samples.Reset(s.samplesPool)
 	s.insertCursor = nil
 	s.compressCursor = nil
 	s.insertAndCompressCounter = 0
@@ -305,7 +309,7 @@ func (s *Stream) insert() {
 		for idx >= 0 && vals[idx] <= insertPointValue {
 			val := vals[idx]
 			idx--
-			sample = s.samples.Acquire()
+			sample = s.samples.Acquire(s.samplesPool)
 			sample.value = val
 			sample.numRanks = 1
 			sample.delta = curr.numRanks + curr.delta - 1
@@ -325,7 +329,7 @@ func (s *Stream) insert() {
 		for idx >= 0 && vals[idx] >= samples.Back().value {
 			val := vals[idx]
 			idx--
-			sample = s.samples.Acquire()
+			sample = s.samples.Acquire(s.samplesPool)
 			sample.value = val
 			sample.numRanks = 1
 			sample.delta = 0

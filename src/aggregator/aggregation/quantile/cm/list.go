@@ -20,6 +20,8 @@
 
 package cm
 
+import "github.com/m3db/m3/src/x/pool"
+
 const _maxSamplesToReuse = 2048
 
 var (
@@ -47,7 +49,7 @@ func (l *sampleList) Front() *Sample { return l.head }
 func (l *sampleList) Back() *Sample { return l.tail }
 
 // Reset resets the list.
-func (l *sampleList) Reset() {
+func (l *sampleList) Reset(sp pool.ObjectPool) {
 	for i := range l.samples {
 		l.samples[i].next, l.samples[i].prev = nil, nil
 	}
@@ -55,6 +57,9 @@ func (l *sampleList) Reset() {
 	l.samples = l.samples[:0]
 	l.free = l.free[:0]
 	if cap(l.samples) > _maxSamplesToReuse || cap(l.free) > _maxSamplesToReuse {
+		for _, s := range l.samples {
+			sp.Put(s)
+		}
 		l.samples = nil
 		l.free = nil
 	}
@@ -107,7 +112,7 @@ func (l *sampleList) Remove(sample *Sample) {
 	}
 }
 
-func (l *sampleList) Acquire() *Sample {
+func (l *sampleList) Acquire(sp pool.ObjectPool) *Sample {
 	idx := 0
 
 	if len(l.free) > 0 {
@@ -119,10 +124,10 @@ func (l *sampleList) Acquire() *Sample {
 	if len(l.samples) < cap(l.samples) {
 		l.samples = l.samples[:len(l.samples)+1]
 		if l.samples[len(l.samples)-1] == nil {
-			l.samples[len(l.samples)-1] = &Sample{}
+			l.samples[len(l.samples)-1] = sp.Get().(*Sample)
 		}
 	} else {
-		l.samples = append(l.samples, &Sample{})
+		l.samples = append(l.samples, sp.Get().(*Sample))
 	}
 
 	idx = len(l.samples) - 1
