@@ -23,6 +23,7 @@ package cm
 import (
 	"testing"
 
+	"github.com/m3db/m3/src/x/pool"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,9 +52,13 @@ func TestSampleListPushBack(t *testing.T) {
 		iter   = 10
 		inputs = make([]float64, iter)
 	)
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	for i := 0; i < iter; i++ {
 		inputs[i] = float64(i)
-		s := l.Acquire()
+		s := l.Acquire(samplesPool)
 		s.value = float64(i)
 		l.PushBack(s)
 	}
@@ -66,10 +71,14 @@ func TestSampleListInsertBefore(t *testing.T) {
 		iter   = 10
 		inputs = make([]float64, iter)
 	)
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	var prev *Sample
 	for i := iter - 1; i >= 0; i-- {
 		inputs[i] = float64(i)
-		sample := l.Acquire()
+		sample := l.Acquire(samplesPool)
 		sample.value = float64(i)
 		if i == iter-1 {
 			l.PushBack(sample)
@@ -87,9 +96,14 @@ func TestSampleListRemove(t *testing.T) {
 		iter   = 10
 		inputs = make([]float64, iter)
 	)
+
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	for i := 0; i < iter; i++ {
 		inputs[i] = float64(i)
-		sample := l.Acquire()
+		sample := l.Acquire(samplesPool)
 		sample.value = float64(i)
 		l.PushBack(sample)
 	}

@@ -25,6 +25,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/m3db/m3/src/x/pool"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,8 +44,12 @@ func testStreamOptions() Options {
 }
 
 func TestEmptyStream(t *testing.T) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	opts := testStreamOptions()
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	require.Equal(t, 0.0, s.Min())
 	require.Equal(t, 0.0, s.Max())
@@ -54,8 +59,12 @@ func TestEmptyStream(t *testing.T) {
 }
 
 func TestStreamWithOnePositiveSample(t *testing.T) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	opts := testStreamOptions()
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	s.Add(100.0)
 	s.Flush()
@@ -68,8 +77,12 @@ func TestStreamWithOnePositiveSample(t *testing.T) {
 }
 
 func TestStreamWithOneNegativeSample(t *testing.T) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	opts := testStreamOptions()
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	s.Add(-100.0)
 	s.Flush()
@@ -82,8 +95,12 @@ func TestStreamWithOneNegativeSample(t *testing.T) {
 }
 
 func TestStreamWithThreeSamples(t *testing.T) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	opts := testStreamOptions()
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	for _, val := range []float64{100.0, 200.0, 300.0} {
 		s.Add(val)
@@ -139,8 +156,12 @@ func TestStreamWithSkewedDistributionPeriodicInsertCompress(t *testing.T) {
 }
 
 func TestStreamClose(t *testing.T) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	opts := testStreamOptions()
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	require.False(t, s.closed)
 
@@ -154,8 +175,12 @@ func TestStreamClose(t *testing.T) {
 }
 
 func testStreamWithIncreasingSamples(t *testing.T, opts Options) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	numSamples := 100000
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	for i := 0; i < numSamples; i++ {
 		s.Add(float64(i))
@@ -172,8 +197,12 @@ func testStreamWithIncreasingSamples(t *testing.T, opts Options) {
 }
 
 func testStreamWithDecreasingSamples(t *testing.T, opts Options) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	numSamples := 100000
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	for i := numSamples - 1; i >= 0; i-- {
 		s.Add(float64(i))
@@ -190,9 +219,13 @@ func testStreamWithDecreasingSamples(t *testing.T, opts Options) {
 }
 
 func testStreamWithRandomSamples(t *testing.T, opts Options) {
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
 	numSamples := 100000
 	maxInt64 := int64(math.MaxInt64)
-	s := NewStream(opts)
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	min := math.MaxFloat64
 	max := -1.0
@@ -217,7 +250,11 @@ func testStreamWithRandomSamples(t *testing.T, opts Options) {
 }
 
 func testStreamWithSkewedDistribution(t *testing.T, opts Options) {
-	s := NewStream(opts)
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
+	samplesPool.Init(func() interface{} { return &Sample{} })
+
+	s := NewStream(opts, samplesPool)
 	s.ResetSetData(testQuantiles)
 	for i := 0; i < 10000; i++ {
 		s.Add(1.0)
