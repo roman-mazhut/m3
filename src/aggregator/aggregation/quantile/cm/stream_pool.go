@@ -21,6 +21,8 @@
 package cm
 
 import (
+	"os"
+	"strconv"
 	"sync"
 
 	"github.com/m3db/m3/src/x/pool"
@@ -34,7 +36,9 @@ type StreamPool struct {
 
 // NewStreamPool creates a new StreamPool.
 func NewStreamPool(opts Options) StreamPool {
-	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(80000)
+	poolSizeStr := os.Getenv("SAMPLES_POOL_SIZE")
+	poolSize, _ := strconv.Atoi(poolSizeStr)
+	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(poolSize)
 	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
 	samplesPool.Init(func() interface{} { return &Sample{} })
 
