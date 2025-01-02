@@ -37,7 +37,10 @@ type StreamPool struct {
 // NewStreamPool creates a new StreamPool.
 func NewStreamPool(opts Options) StreamPool {
 	poolSizeStr := os.Getenv("SAMPLES_POOL_SIZE")
-	poolSize, _ := strconv.Atoi(poolSizeStr)
+	poolSize, err := strconv.Atoi(poolSizeStr)
+	if err != nil {
+		poolSize = 15000
+	}
 	var samplesPoolOptions = pool.NewObjectPoolOptions().SetRefillLowWatermark(0.2).SetRefillHighWatermark(0.5).SetSize(poolSize)
 	var samplesPool = pool.NewObjectPool(samplesPoolOptions)
 	samplesPool.Init(func() interface{} { return &Sample{} })
